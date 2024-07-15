@@ -269,13 +269,12 @@ impl PublicKey {
         let data = parts.next().ok_or(OpenSSHKeyError::InvalidFormat)?;
         // comment is not required. if we get an empty comment (because of a
         // trailing space) throw it out.
-        let comment = parts.next().and_then(|c| {
-            if c.is_empty() {
-                None
-            } else {
-                Some(c.to_string())
-            }
-        });
+        let comment = parts.collect::<Vec<_>>();
+        let comment = if comment.is_empty() {
+            None
+        } else {
+            Some(comment.join(" "))
+        };
 
         let buf = BASE64
             .decode(data)
