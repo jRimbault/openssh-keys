@@ -264,16 +264,16 @@ impl PublicKey {
 
     fn try_key_parse(key: &str) -> Result<Self> {
         // then parse the key according to rfc4253
-        let mut parts = key.split_whitespace();
-        let keytype = parts.next().ok_or(OpenSSHKeyError::InvalidFormat)?;
-        let data = parts.next().ok_or(OpenSSHKeyError::InvalidFormat)?;
-        // comment is not required. if we get an empty comment (because of a
-        // trailing space) throw it out.
-        let comment = parts.collect::<Vec<_>>();
+        let (keytype, remaining) = key
+            .split_once(char::is_whitespace)
+            .ok_or(OpenSSHKeyError::InvalidFormat)?;
+        let (data, comment) = remaining
+            .split_once(char::is_whitespace)
+            .ok_or(OpenSSHKeyError::InvalidFormat)?;
         let comment = if comment.is_empty() {
             None
         } else {
-            Some(comment.join(" "))
+            Some(comment.to_owned())
         };
 
         let buf = BASE64
